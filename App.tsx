@@ -1,12 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import DangNhapScreen from './Screen/DangNhapScreen';
+import DanhSachVatDungScreen from './Screen/DanhSachVatDungScreen';
+import ChiTietVatDungScreen from './Screen/ChiTietVatDungScreen';
+import QuanLyChoThueScreen from './Screen/QuanLyChoThueScreen';
+import ThemVatDungScreen from './Screen/ThemVatDungScreen';
+import CapNhatPhieuMuonScreen from './Screen/CapNhatPhieuMuonScreen';
+import DanhSachVatDungChuSoHuuScreen from './Screen/DanhSachVatDungChuSoHuuScreen';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <QuanLyChoThueScreen   />
   );
 }
 
