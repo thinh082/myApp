@@ -7,21 +7,50 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { DangNhap } from "../service/auth";
 import { setIdTaiKhoan } from "../service/storage";
 
-const DangNhapScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon' | 'quanlymuonvatdung' | 'cacvatdungdamuon' | 'thongtincanhan';
+
+interface DangNhapScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const DangNhapScreen: React.FC<DangNhapScreenProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState("");
   const [matKhau, setMatKhau] = useState("");
-
   const handleLogin = async () => {
     try {
       const res = await DangNhap({ email, matKhau });
 
       if (res.taiKhoanId) {
         await setIdTaiKhoan(res.taiKhoanId);
-        Alert.alert("Thành công", res.message);
+        
+        Alert.alert(
+          "Thành công", 
+          res.message,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                // Navigate based on user role (chuSoHuu)
+                console.log('User role (chuSoHuu):', res.chuSoHuu);
+                
+                if (res.chuSoHuu === true) {
+                  // Chủ sở hữu -> QuanLyChoThueScreen
+                  console.log('Navigating to QuanLyChoThueScreen (Chủ sở hữu)');
+                  onNavigate('quanlychothue');
+                } else {
+                  // Người mượn hoặc chuSoHuu undefined -> QuanLyMuonVatDungScreen
+                  console.log('Navigating to QuanLyMuonVatDungScreen (Người mượn)');
+                  onNavigate('quanlymuonvatdung');
+                }
+              }
+            }
+          ]
+        );
       } else {
         Alert.alert("Thất bại", res.message || "Sai email hoặc mật khẩu");
       }
@@ -31,7 +60,7 @@ const DangNhapScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Đăng Nhập</Text>
@@ -67,6 +96,7 @@ const DangNhapScreen: React.FC = () => {
 
           <TouchableOpacity
             style={styles.registerLink}
+            onPress={() => onNavigate('dangky')}
           >
             <Text style={styles.registerLinkText}>
               Chưa có tài khoản? Đăng ký
@@ -74,7 +104,7 @@ const DangNhapScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

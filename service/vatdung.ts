@@ -48,7 +48,7 @@ export async function getDanhSachVatDungTheoChuSoHuu(
   chuSoHuuId: number
 ): Promise<VatDung[]> {
   const response = await api.post<VatDung[]>(
-    "/api/VatDung/DanhSachVatDungTheoChuSoHuu",
+    "/api/VatDung/DanhSachVatDungTheoChuSoHuu?chuSoHuuId=" + chuSoHuuId,
     chuSoHuuId
   );
   return response.data;

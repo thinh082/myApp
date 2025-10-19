@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   FlatList,
 } from "react-native";
@@ -16,19 +15,44 @@ import {
   getDanhSachVatDungTheoChuSoHuu, 
   VatDung 
 } from "../service/vatdung";
+import { getIdTaiKhoan } from "../service/storage";
 
-const CapNhatVatDungScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon';
+
+interface CapNhatVatDungScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const CapNhatVatDungScreen: React.FC<CapNhatVatDungScreenProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [vatDungList, setVatDungList] = useState<VatDung[]>([]);
   const [selectedVatDung, setSelectedVatDung] = useState<VatDung | null>(null);
   const [formData, setFormData] = useState<Partial<VatDung>>({});
-
-  const chuSoHuuId = 1; // Tạm thời hardcode, sau này lấy từ user đăng nhập
+  const [chuSoHuuId, setChuSoHuuId] = useState<number>(1);
 
   useEffect(() => {
-    fetchVatDungList();
+    loadUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (chuSoHuuId !== 1) {
+      fetchVatDungList();
+    }
+  }, [chuSoHuuId]);
+
+  const loadUserInfo = async () => {
+    try {
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setChuSoHuuId(taiKhoanId);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
 
   const fetchVatDungList = async () => {
     try {
@@ -105,6 +129,8 @@ const CapNhatVatDungScreen: React.FC = () => {
                 setSelectedVatDung(null);
                 setFormData({});
                 fetchVatDungList();
+                // Navigate back to management screen
+                onNavigate('quanlychothue');
               }
             }
           ]
@@ -169,22 +195,32 @@ const CapNhatVatDungScreen: React.FC = () => {
 
   if (loadingList) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3498db" />
           <Text style={styles.loadingText}>Đang tải danh sách vật dụng...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cập nhật vật dụng</Text>
-        <Text style={styles.headerSubtitle}>
-          Chọn và chỉnh sửa thông tin vật dụng
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Cập nhật vật dụng</Text>
+            <Text style={styles.headerSubtitle}>
+              Chọn và chỉnh sửa thông tin vật dụng
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlychothue')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -270,7 +306,7 @@ const CapNhatVatDungScreen: React.FC = () => {
           </ScrollView>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -286,6 +322,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -295,6 +339,19 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: "#ecf0f1",
+  },
+  backButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,

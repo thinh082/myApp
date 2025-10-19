@@ -10,18 +10,21 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { getChiTietVatDung, VatDung } from "../service/vatdung";
 import { themPhieuMuonTra, ThemPhieuMuon } from "../service/phieumuon";
 
-const ChiTietVatDungScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung';
+
+interface ChiTietVatDungScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+  vatDungId: number;
+}
+
+const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate, vatDungId }) => {
   const [vatDung, setVatDung] = useState<VatDung | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [borrowing, setBorrowing] = useState(false);
-
-  // Tạm thời sử dụng id = 12, sau này sẽ nhận từ route
-  const vatDungId = 13;
 
   const fetchChiTietVatDung = async () => {
     try {
@@ -214,23 +217,29 @@ const ChiTietVatDungScreen: React.FC = () => {
       <TouchableOpacity style={styles.secondaryButton} onPress={onRefresh}>
         <Text style={styles.secondaryButtonText}>Làm mới</Text>
       </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => onNavigate('danhsachvatdung')}
+      >
+        <Text style={styles.backButtonText}>Quay lại</Text>
+      </TouchableOpacity>
     </View>
   );
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3498db" />
           <Text style={styles.loadingText}>Đang tải chi tiết vật dụng...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!vatDung) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>❌</Text>
           <Text style={styles.errorTitle}>Không tìm thấy vật dụng</Text>
@@ -241,12 +250,12 @@ const ChiTietVatDungScreen: React.FC = () => {
             <Text style={styles.retryButtonText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -258,7 +267,7 @@ const ChiTietVatDungScreen: React.FC = () => {
         {renderInfoSection()}
         {renderActionButtons()}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -486,6 +495,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  backButton: {
+    backgroundColor: "#95a5a6",
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

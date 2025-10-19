@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
   FlatList,
   RefreshControl,
@@ -15,17 +14,42 @@ import {
   getDanhSachVatDungTheoChuSoHuu, 
   VatDung 
 } from "../service/vatdung";
+import { getIdTaiKhoan } from "../service/storage";
 
-const DanhSachVatDungChuSoHuuScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon';
+
+interface DanhSachVatDungChuSoHuuScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const DanhSachVatDungChuSoHuuScreen: React.FC<DanhSachVatDungChuSoHuuScreenProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [vatDungList, setVatDungList] = useState<VatDung[]>([]);
-
-  const chuSoHuuId = 1; // Tạm thời hardcode, sau này lấy từ user đăng nhập
+  const [chuSoHuuId, setChuSoHuuId] = useState<number>(1);
 
   useEffect(() => {
-    fetchVatDungList();
+    loadUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (chuSoHuuId !== 1) {
+      fetchVatDungList();
+    }
+  }, [chuSoHuuId]);
+
+  const loadUserInfo = async () => {
+    try {
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setChuSoHuuId(taiKhoanId);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
 
   const fetchVatDungList = async () => {
     try {
@@ -127,23 +151,33 @@ const DanhSachVatDungChuSoHuuScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3498db" />
           <Text style={styles.loadingText}>Đang tải danh sách vật dụng...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (vatDungList.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Danh sách vật dụng của tôi</Text>
-          <Text style={styles.headerSubtitle}>
-            Quản lý tất cả vật dụng bạn đang cho thuê
-          </Text>
+          <View style={styles.headerContent}>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Danh sách vật dụng của tôi</Text>
+              <Text style={styles.headerSubtitle}>
+                Quản lý tất cả vật dụng bạn đang cho thuê
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => onNavigate('quanlychothue')}
+            >
+              <Text style={styles.backButtonText}>Quay lại</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📦</Text>
@@ -155,17 +189,27 @@ const DanhSachVatDungChuSoHuuScreen: React.FC = () => {
             <Text style={styles.addButtonText}>Thêm vật dụng mới</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Danh sách vật dụng của tôi</Text>
-        <Text style={styles.headerSubtitle}>
-          Quản lý tất cả vật dụng bạn đang cho thuê
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Danh sách vật dụng của tôi</Text>
+            <Text style={styles.headerSubtitle}>
+              Quản lý tất cả vật dụng bạn đang cho thuê
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlychothue')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.statsContainer}>
@@ -198,7 +242,7 @@ const DanhSachVatDungChuSoHuuScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -214,6 +258,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -223,6 +275,19 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: "#ecf0f1",
+  },
+  backButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,

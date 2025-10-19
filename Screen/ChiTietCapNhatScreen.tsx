@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
   ScrollView,
   Platform,
@@ -239,30 +238,30 @@ const ChiTietCapNhatScreen: React.FC<ChiTietCapNhatScreenProps> = ({ phieuMuonId
 
   if (loadingDetail) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9b59b6" />
           <Text style={styles.loadingText}>Đang tải chi tiết phiếu mượn...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!phieuMuon) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Không tìm thấy phiếu mượn</Text>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Text style={styles.backButtonText}>Quay lại</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>← Quay lại</Text>
@@ -367,7 +366,7 @@ const ChiTietCapNhatScreen: React.FC<ChiTietCapNhatScreenProps> = ({ phieuMuonId
           )}
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

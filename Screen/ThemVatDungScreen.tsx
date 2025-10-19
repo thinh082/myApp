@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,15 +7,23 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
 } from "react-native";
 import { themVatDung, ThemVatDung } from "../service/vatdung";
+import { getIdTaiKhoan } from "../service/storage";
 
-const ThemVatDungScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon';
+
+interface ThemVatDungScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const ThemVatDungScreen: React.FC<ThemVatDungScreenProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<ThemVatDung>({
-    chuSoHuuId: 1, // Tạm thời hardcode, sau này lấy từ user đăng nhập
+    chuSoHuuId: 1, // Sẽ được cập nhật từ storage
     tenVatDung: "",
     moTa: "",
     danhMucId: undefined,
@@ -26,6 +34,24 @@ const ThemVatDungScreen: React.FC = () => {
     hinhAnh: "",
     trangThai: true,
   });
+
+  useEffect(() => {
+    loadUserInfo();
+  }, []);
+
+  const loadUserInfo = async () => {
+    try {
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setFormData(prev => ({
+          ...prev,
+          chuSoHuuId: taiKhoanId
+        }));
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
 
   const handleInputChange = (field: keyof ThemVatDung, value: string | number | boolean) => {
     setFormData(prev => ({
@@ -89,6 +115,8 @@ const ThemVatDungScreen: React.FC = () => {
                   hinhAnh: "",
                   trangThai: true,
                 });
+                // Navigate back to management screen
+                onNavigate('quanlychothue');
               }
             }
           ]
@@ -132,12 +160,22 @@ const ThemVatDungScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Thêm vật dụng cho thuê</Text>
-        <Text style={styles.headerSubtitle}>
-          Thêm vật dụng mới vào danh mục cho thuê
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Thêm vật dụng cho thuê</Text>
+            <Text style={styles.headerSubtitle}>
+              Thêm vật dụng mới vào danh mục cho thuê
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlychothue')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -208,7 +246,7 @@ const ThemVatDungScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -224,6 +262,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -233,6 +279,19 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: "#ecf0f1",
+  },
+  backButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   scrollView: {
     flex: 1,

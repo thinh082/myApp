@@ -8,15 +8,22 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DangKy } from "../service/auth";
 
-const DangKyScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung';
+
+interface DangKyScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState("");
   const [soDienThoai, setSoDienThoai] = useState("");
   const [matKhau, setMatKhau] = useState("");
   const [xacNhanMatKhau, setXacNhanMatKhau] = useState("");
+  const [hoTen, setHoTen] = useState("");
+  const [diaChi, setDiaChi] = useState("");
 
   const handleRegister = async () => {
     if (matKhau !== xacNhanMatKhau) {
@@ -25,9 +32,18 @@ const DangKyScreen: React.FC = () => {
     }
 
     try {
-      const res = await DangKy({ email, soDienThoai, matKhau });
+      const res = await DangKy({ email, soDienThoai, matKhau, hoTen, diaChi });
       if (res.success) {
-        Alert.alert("Thành công", res.message);
+        Alert.alert(
+          "Thành công", 
+          res.message,
+          [
+            {
+              text: "OK",
+              onPress: () => onNavigate('dangnhap')
+            }
+          ]
+        );
       } else {
         Alert.alert("Thất bại", res.message);
       }
@@ -37,7 +53,7 @@ const DangKyScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Đăng Ký</Text>
@@ -59,6 +75,16 @@ const DangKyScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
+            <Text style={styles.label}>Họ và tên</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập họ và tên"
+              value={hoTen}
+              onChangeText={setHoTen}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>Số điện thoại</Text>
             <TextInput
               style={styles.input}
@@ -66,6 +92,16 @@ const DangKyScreen: React.FC = () => {
               keyboardType="phone-pad"
               value={soDienThoai}
               onChangeText={setSoDienThoai}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Địa chỉ</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập địa chỉ"
+              value={diaChi}
+              onChangeText={setDiaChi}
             />
           </View>
 
@@ -100,13 +136,13 @@ const DangKyScreen: React.FC = () => {
 
           <View style={styles.loginLink}>
             <Text style={styles.loginText}>Đã có tài khoản? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => onNavigate('dangnhap')}>
               <Text style={styles.loginLinkText}>Đăng nhập ngay</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

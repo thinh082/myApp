@@ -11,15 +11,41 @@ export type DangNhapRequest = {
 export type DangNhapResponse = {
   message: string;
   taiKhoanId?: number; // chỉ có khi đăng nhập thành công
+  chuSoHuu?: boolean; // true: chủ sở hữu, false: người mượn
 };
 
 export type DangKyRequest = {
   email: string;
   matKhau: string;
   soDienThoai: string;
+  diaChi: string;
+  hoTen: string;
 };
 
 export type DangKyResponse = {
+  message: string;
+  success: boolean;
+};
+
+export type ThongTinCaNhan = {
+  id: number;
+  email: string;
+  hoTen: string;
+  diaChi: string;
+  soDienThoai: string;
+  ngayTao: string;
+  hinhAnh?: string;
+};
+
+export type CapNhatThongTinRequest = {
+  email: string;
+  matKhau: string;
+  soDienThoai: string;
+  diaChi: string;
+  hoTen: string;
+};
+
+export type CapNhatThongTinResponse = {
   message: string;
   success: boolean;
 };
@@ -46,6 +72,28 @@ export async function DangKy(
 ): Promise<DangKyResponse> {
   const response = await api.post<DangKyResponse>(
     "/api/XacThuc/DangKy",
+    body
+  );
+  return response.data;
+}
+
+// Xem thông tin cá nhân
+export async function XemThongTinCaNhan(
+  idTaiKhoan: number
+): Promise<ThongTinCaNhan> {
+  const response = await api.get<ThongTinCaNhan>(
+    `/api/XacThuc/XemThongTinCaNhan?idTaiKhoan=${idTaiKhoan}`
+  );
+  return response.data;
+}
+
+// Cập nhật thông tin cá nhân
+export async function CapNhatThongTinCaNhan(
+  idTaiKhoan: number,
+  body: CapNhatThongTinRequest
+): Promise<CapNhatThongTinResponse> {
+  const response = await api.post<CapNhatThongTinResponse>(
+    `/api/XacThuc/CapNhatThongTinCaNhan?idTaiKhoan=${idTaiKhoan}`,
     body
   );
   return response.data;

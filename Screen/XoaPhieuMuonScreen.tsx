@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
   FlatList,
 } from "react-native";
@@ -14,17 +13,42 @@ import {
   getDanhSachPhieuMuonTra, 
   PhieuMuon 
 } from "../service/phieumuon";
+import { getIdTaiKhoan } from "../service/storage";
 
-const XoaPhieuMuonScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon';
+
+interface XoaPhieuMuonScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const XoaPhieuMuonScreen: React.FC<XoaPhieuMuonScreenProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [phieuMuonList, setPhieuMuonList] = useState<PhieuMuon[]>([]);
-
-  const chuSoHuuId = 2; // Tạm thời hardcode, sau này lấy từ user đăng nhập
+  const [chuSoHuuId, setChuSoHuuId] = useState<number>(1);
 
   useEffect(() => {
-    fetchPhieuMuonList();
+    loadUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (chuSoHuuId !== 1) {
+      fetchPhieuMuonList();
+    }
+  }, [chuSoHuuId]);
+
+  const loadUserInfo = async () => {
+    try {
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setChuSoHuuId(taiKhoanId);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
 
   const fetchPhieuMuonList = async () => {
     try {
@@ -160,23 +184,33 @@ const XoaPhieuMuonScreen: React.FC = () => {
 
   if (loadingList) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#e67e22" />
           <Text style={styles.loadingText}>Đang tải danh sách phiếu mượn...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (phieuMuonList.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Xóa phiếu mượn</Text>
-          <Text style={styles.headerSubtitle}>
-            Quản lý và xóa phiếu mượn trả
-          </Text>
+          <View style={styles.headerContent}>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Xóa phiếu mượn</Text>
+              <Text style={styles.headerSubtitle}>
+                Quản lý và xóa phiếu mượn trả
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => onNavigate('quanlychothue')}
+            >
+              <Text style={styles.backButtonText}>Quay lại</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📋</Text>
@@ -185,17 +219,27 @@ const XoaPhieuMuonScreen: React.FC = () => {
             Bạn chưa có phiếu mượn nào để quản lý
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Xóa phiếu mượn</Text>
-        <Text style={styles.headerSubtitle}>
-          Quản lý và xóa phiếu mượn trả
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Xóa phiếu mượn</Text>
+            <Text style={styles.headerSubtitle}>
+              Quản lý và xóa phiếu mượn trả
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlychothue')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.warningContainer}>
@@ -232,7 +276,7 @@ const XoaPhieuMuonScreen: React.FC = () => {
         style={styles.phieuMuonList}
         contentContainerStyle={styles.listContent}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -248,6 +292,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -257,6 +309,19 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: "#ecf0f1",
+  },
+  backButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,

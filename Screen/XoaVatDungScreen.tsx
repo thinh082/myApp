@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
   FlatList,
 } from "react-native";
@@ -14,17 +13,42 @@ import {
   getDanhSachVatDungTheoChuSoHuu, 
   VatDung 
 } from "../service/vatdung";
+import { getIdTaiKhoan } from "../service/storage";
 
-const XoaVatDungScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon';
+
+interface XoaVatDungScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const XoaVatDungScreen: React.FC<XoaVatDungScreenProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [vatDungList, setVatDungList] = useState<VatDung[]>([]);
-
-  const chuSoHuuId = 1; // Tạm thời hardcode, sau này lấy từ user đăng nhập
+  const [chuSoHuuId, setChuSoHuuId] = useState<number>(1);
 
   useEffect(() => {
-    fetchVatDungList();
+    loadUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (chuSoHuuId !== 1) {
+      fetchVatDungList();
+    }
+  }, [chuSoHuuId]);
+
+  const loadUserInfo = async () => {
+    try {
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setChuSoHuuId(taiKhoanId);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
 
   const fetchVatDungList = async () => {
     try {
@@ -114,23 +138,33 @@ const XoaVatDungScreen: React.FC = () => {
 
   if (loadingList) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#e74c3c" />
           <Text style={styles.loadingText}>Đang tải danh sách vật dụng...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (vatDungList.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Xóa vật dụng</Text>
-          <Text style={styles.headerSubtitle}>
-            Quản lý và xóa vật dụng cho thuê
-          </Text>
+          <View style={styles.headerContent}>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Xóa vật dụng</Text>
+              <Text style={styles.headerSubtitle}>
+                Quản lý và xóa vật dụng cho thuê
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => onNavigate('quanlychothue')}
+            >
+              <Text style={styles.backButtonText}>Quay lại</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📦</Text>
@@ -139,17 +173,27 @@ const XoaVatDungScreen: React.FC = () => {
             Bạn chưa có vật dụng nào để quản lý
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Xóa vật dụng</Text>
-        <Text style={styles.headerSubtitle}>
-          Quản lý và xóa vật dụng cho thuê
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Xóa vật dụng</Text>
+            <Text style={styles.headerSubtitle}>
+              Quản lý và xóa vật dụng cho thuê
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlychothue')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.warningContainer}>
@@ -167,7 +211,7 @@ const XoaVatDungScreen: React.FC = () => {
         style={styles.vatDungList}
         contentContainerStyle={styles.listContent}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -183,6 +227,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -192,6 +244,19 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: "#ecf0f1",
+  },
+  backButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,

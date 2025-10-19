@@ -9,85 +9,99 @@ import {
   RefreshControl,
   Image,
   ActivityIndicator,
-  TextInput,
 } from "react-native";
-import { getDanhSachVatDung, VatDung } from "../service/vatdung";
+import { getDanhSachPhieuMuonTraTheoNguoiMuon, PhieuMuon } from "../service/phieumuon";
+import { getIdTaiKhoan } from "../service/storage";
 
 type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
              'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
              'capnhatphieumuon' | 'xoaphieumuon' | 'quanlymuonvatdung' | 'cacvatdungdamuon' | 'thongtincanhan';
 
-interface DanhSachVatDungScreenProps {
+interface DanhSachVatDungCuaNguoiMuonScreenProps {
   onNavigate: (screen: Screen, vatDungId?: number) => void;
 }
 
-const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigate }) => {
-  const [vatDungList, setVatDungList] = useState<VatDung[]>([]);
-  const [filteredList, setFilteredList] = useState<VatDung[]>([]);
+const DanhSachVatDungCuaNguoiMuonScreen: React.FC<DanhSachVatDungCuaNguoiMuonScreenProps> = ({ onNavigate }) => {
+  const [phieuMuonList, setPhieuMuonList] = useState<PhieuMuon[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [nguoiMuonId, setNguoiMuonId] = useState<number>(1);
 
-  const fetchVatDung = async () => {
+  useEffect(() => {
+    loadUserInfo();
+  }, []);
+
+  useEffect(() => {
+    if (nguoiMuonId !== 1) {
+      fetchPhieuMuonList();
+    }
+  }, [nguoiMuonId]);
+
+  const loadUserInfo = async () => {
     try {
-      const data = await getDanhSachVatDung();
-      setVatDungList(data);
-      setFilteredList(data);
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setNguoiMuonId(taiKhoanId);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
+
+  const fetchPhieuMuonList = async () => {
+    try {
+      setLoading(true);
+      const data = await getDanhSachPhieuMuonTraTheoNguoiMuon(nguoiMuonId);
+      setPhieuMuonList(data);
     } catch (error: any) {
-      Alert.alert("Lỗi", "Không thể tải danh sách vật dụng: " + error.message);
+      Alert.alert("Lỗi", "Không thể tải danh sách phiếu mượn: " + error.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // Hàm tìm kiếm và lọc
-  const handleSearch = (text: string) => {
-    setSearchText(text);
-    if (text.trim() === "") {
-      setFilteredList(vatDungList);
-    } else {
-      const filtered = vatDungList.filter((item) =>
-        item.tenVatDung.toLowerCase().includes(text.toLowerCase()) ||
-        (item.moTa && item.moTa.toLowerCase().includes(text.toLowerCase())) ||
-        (item.tinhTrang && item.tinhTrang.toLowerCase().includes(text.toLowerCase()))
-      );
-      setFilteredList(filtered);
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchPhieuMuonList();
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  const getStatusColor = (trangThaiId: number) => {
+    switch (trangThaiId) {
+      case 1: return '#f39c12'; // Đang mượn
+      case 2: return '#2ecc71'; // Đã trả
+      case 3: return '#e74c3c'; // Quá hạn
+      default: return '#95a5a6';
     }
   };
 
-  // Hàm xóa tìm kiếm
-  const clearSearch = () => {
-    setSearchText("");
-    setFilteredList(vatDungList);
+  const getStatusText = (trangThaiId: number) => {
+    switch (trangThaiId) {
+      case 1: return 'Đang mượn';
+      case 2: return 'Đã trả';
+      case 3: return 'Quá hạn';
+      default: return 'Không xác định';
+    }
   };
 
-  useEffect(() => {
-    fetchVatDung();
-  }, []);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchVatDung();
-  };
-
-  const renderVatDungItem = ({ item }: { item: VatDung }) => (
-    <TouchableOpacity 
-      style={styles.itemContainer}
-      onPress={() => onNavigate('chitietvatdung', item.id)}
-    >
+  const renderPhieuMuonItem = ({ item }: { item: PhieuMuon }) => (
+    <TouchableOpacity style={styles.itemContainer}>
       <View style={styles.itemContent}>
         <View style={styles.itemMainContent}>
           {/* Hình ảnh vật dụng */}
           <View style={styles.imageContainer}>
-            {item.hinhAnh ? (
+            {item.vatDung?.hinhAnh ? (
               <Image
-                source={{ uri: item.hinhAnh }}
+                source={{ uri: item.vatDung.hinhAnh }}
                 style={styles.itemImage}
                 resizeMode="cover"
                 onError={() => {
-                  // Fallback khi hình ảnh lỗi
-                  console.log('Lỗi tải hình ảnh:', item.hinhAnh);
+                  console.log('Lỗi tải hình ảnh:', item.vatDung?.hinhAnh);
                 }}
               />
             ) : (
@@ -97,45 +111,55 @@ const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigat
             )}
           </View>
 
-          {/* Thông tin vật dụng */}
+          {/* Thông tin phiếu mượn */}
           <View style={styles.itemInfo}>
             <View style={styles.itemHeader}>
-              <Text style={styles.itemTitle}>{item.tenVatDung}</Text>
+              <Text style={styles.itemTitle}>{item.vatDung?.tenVatDung || 'Không có tên'}</Text>
               <View style={[
                 styles.statusBadge,
-                { backgroundColor: item.coTheMuon ? '#2ecc71' : '#e74c3c' }
+                { backgroundColor: getStatusColor(item.trangThaiId) }
               ]}>
                 <Text style={styles.statusText}>
-                  {item.coTheMuon ? 'Có thể mượn' : 'Không thể mượn'}
+                  {getStatusText(item.trangThaiId)}
                 </Text>
               </View>
             </View>
 
-            {item.moTa && (
+            {item.vatDung?.moTa && (
               <Text style={styles.itemDescription} numberOfLines={2}>
-                {item.moTa}
+                {item.vatDung.moTa}
               </Text>
             )}
 
-            <View style={styles.itemFooter}>
-              <View style={styles.quantityContainer}>
-                <Text style={styles.quantityLabel}>Tổng:</Text>
-                <Text style={styles.quantityValue}>{item.soLuongTong || 0}</Text>
+            <View style={styles.itemDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Số lượng:</Text>
+                <Text style={styles.detailValue}>{item.soLuong}</Text>
               </View>
-              <View style={styles.quantityContainer}>
-                <Text style={styles.quantityLabel}>Còn lại:</Text>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Ngày mượn:</Text>
+                <Text style={styles.detailValue}>{formatDate(item.ngayMuon)}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Hạn trả:</Text>
                 <Text style={[
-                  styles.quantityValue,
-                  { color: (item.soLuongCon || 0) > 0 ? '#2ecc71' : '#e74c3c' }
+                  styles.detailValue,
+                  { color: item.trangThaiId === 3 ? '#e74c3c' : '#2c3e50' }
                 ]}>
-                  {item.soLuongCon || 0}
+                  {formatDate(item.ngayTraDuKien)}
                 </Text>
               </View>
+              {item.ngayTraThucTe && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Ngày trả:</Text>
+                  <Text style={styles.detailValue}>{formatDate(item.ngayTraThucTe)}</Text>
+                </View>
+              )}
             </View>
 
-            {item.tinhTrang && (
-              <Text style={styles.conditionText}>
-                Tình trạng: {item.tinhTrang}
+            {item.ghiChu && (
+              <Text style={styles.noteText}>
+                Ghi chú: {item.ghiChu}
               </Text>
             )}
           </View>
@@ -146,10 +170,10 @@ const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigat
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📦</Text>
-      <Text style={styles.emptyTitle}>Không có vật dụng</Text>
+      <Text style={styles.emptyIcon}>📋</Text>
+      <Text style={styles.emptyTitle}>Chưa có phiếu mượn nào</Text>
       <Text style={styles.emptyDescription}>
-        Hiện tại chưa có vật dụng nào trong hệ thống
+        Bạn chưa mượn vật dụng nào trong hệ thống
       </Text>
       <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
         <Text style={styles.refreshButtonText}>Làm mới</Text>
@@ -160,9 +184,25 @@ const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigat
   if (loading) {
     return (
       <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Các vật dụng đã mượn</Text>
+              <Text style={styles.headerSubtitle}>
+                Danh sách vật dụng bạn đã mượn
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => onNavigate('quanlymuonvatdung')}
+            >
+              <Text style={styles.backButtonText}>Quay lại</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3498db" />
-          <Text style={styles.loadingText}>Đang tải danh sách vật dụng...</Text>
+          <ActivityIndicator size="large" color="#2ecc71" />
+          <Text style={styles.loadingText}>Đang tải danh sách phiếu mượn...</Text>
         </View>
       </View>
     );
@@ -173,48 +213,24 @@ const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigat
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Danh Sách Vật Dụng</Text>
+            <Text style={styles.headerTitle}>Các vật dụng đã mượn</Text>
             <Text style={styles.headerSubtitle}>
-              {searchText ? `Tìm thấy: ${filteredList.length} vật dụng` : `Tổng cộng: ${vatDungList.length} vật dụng`}
+              Tổng cộng: {phieuMuonList.length} phiếu mượn
             </Text>
           </View>
-          <View style={styles.headerButtons}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => onNavigate('quanlymuonvatdung')}
-            >
-              <Text style={styles.backButtonText}>Quay lại</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.logoutButton}
-              onPress={() => onNavigate('dangnhap')}
-            >
-              <Text style={styles.logoutButtonText}>Đăng xuất</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        
-        {/* Thanh tìm kiếm */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Tìm kiếm vật dụng..."
-            value={searchText}
-            onChangeText={handleSearch}
-            placeholderTextColor="#95a5a6"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
-              <Text style={styles.clearButtonText}>✕</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlymuonvatdung')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <FlatList
-        data={filteredList}
+        data={phieuMuonList}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderVatDungItem}
+        renderItem={renderPhieuMuonItem}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -232,17 +248,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#2ecc71",
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e1e8ed",
+    paddingVertical: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
   },
   headerText: {
     flex: 1,
@@ -250,73 +265,25 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#2c3e50",
+    color: "#ffffff",
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "#7f8c8d",
-  },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    color: "#ecf0f1",
   },
   backButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   backButtonText: {
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
-  },
-  logoutButton: {
-    backgroundColor: "#e74c3c",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  logoutButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#2c3e50",
-    paddingVertical: 4,
-  },
-  clearButton: {
-    marginLeft: 8,
-    padding: 4,
-    borderRadius: 12,
-    backgroundColor: "#e9ecef",
-    width: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  clearButtonText: {
-    fontSize: 14,
-    color: "#6c757d",
-    fontWeight: "bold",
   },
   listContainer: {
     padding: 16,
@@ -393,29 +360,32 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 16,
   },
-  itemFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  itemDetails: {
     marginBottom: 12,
   },
-  quantityContainer: {
+  detailRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 8,
   },
-  quantityLabel: {
+  detailLabel: {
     fontSize: 14,
     color: "#7f8c8d",
-    marginRight: 8,
+    fontWeight: "500",
   },
-  quantityValue: {
-    fontSize: 16,
-    fontWeight: "bold",
+  detailValue: {
+    fontSize: 14,
     color: "#2c3e50",
+    fontWeight: "600",
   },
-  conditionText: {
+  noteText: {
     fontSize: 14,
     color: "#95a5a6",
     fontStyle: "italic",
+    backgroundColor: "#f8f9fa",
+    padding: 8,
+    borderRadius: 8,
   },
   loadingContainer: {
     flex: 1,
@@ -450,7 +420,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   refreshButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#2ecc71",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -462,4 +432,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DanhSachVatDungScreen;
+export default DanhSachVatDungCuaNguoiMuonScreen;

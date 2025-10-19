@@ -9,56 +9,35 @@ import {
 
 type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
              'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
-             'capnhatphieumuon' | 'xoaphieumuon';
+             'capnhatphieumuon' | 'xoaphieumuon' | 'quanlymuonvatdung' | 'cacvatdungdamuon' | 'thongtincanhan';
 
-interface QuanLyChoThueScreenProps {
+interface QuanLyMuonVatDungScreenProps {
   onNavigate: (screen: Screen, vatDungId?: number) => void;
 }
 
-const QuanLyChoThueScreen: React.FC<QuanLyChoThueScreenProps> = ({ onNavigate }) => {
+const QuanLyMuonVatDungScreen: React.FC<QuanLyMuonVatDungScreenProps> = ({ onNavigate }) => {
 
   const menuItems = [
     {
-      id: "them-vatdung",
-      title: "Thêm vật dụng cho thuê",
-      description: "Thêm vật dụng mới vào danh mục cho thuê",
-      icon: "➕",
-      screen: "themvatdung" as Screen,
-    },
-    {
-      id: "capnhat-vatdung",
-      title: "Cập nhật vật dụng",
-      description: "Chỉnh sửa thông tin vật dụng đã có",
-      icon: "✏️",
-      screen: "capnhatvatdung" as Screen,
-    },
-    {
-      id: "xoa-vatdung",
-      title: "Xóa vật dụng",
-      description: "Xóa vật dụng khỏi danh mục cho thuê",
-      icon: "🗑️",
-      screen: "xoavatdung" as Screen,
-    },
-    {
-      id: "danhsach-vatdung",
-      title: "Danh sách vật dụng của tôi",
-      description: "Xem tất cả vật dụng bạn đang cho thuê",
+      id: "cac-vatdung-damuon",
+      title: "Các vật dụng đã mượn",
+      description: "Xem danh sách vật dụng bạn đã mượn",
       icon: "📋",
-      screen: "danhsachvatdungchusohuu" as Screen,
+      screen: "cacvatdungdamuon" as Screen,
     },
     {
-      id: "capnhat-phieumuon",
-      title: "Cập nhật phiếu mượn",
-      description: "Cập nhật trạng thái phiếu mượn trả",
-      icon: "📝",
-      screen: "capnhatphieumuon" as Screen,
+      id: "thong-tin-ca-nhan",
+      title: "Thông tin cá nhân",
+      description: "Xem và cập nhật thông tin cá nhân",
+      icon: "👤",
+      screen: "thongtincanhan" as Screen,
     },
     {
-      id: "xoa-phieumuon",
-      title: "Xóa phiếu mượn",
-      description: "Xóa phiếu mượn trả",
-      icon: "❌",
-      screen: "xoaphieumuon" as Screen,
+      id: "danh-sach-vatdung",
+      title: "Danh sách vật dụng",
+      description: "Xem tất cả vật dụng có thể mượn",
+      icon: "📦",
+      screen: "danhsachvatdung" as Screen,
     },
   ];
 
@@ -74,15 +53,15 @@ const QuanLyChoThueScreen: React.FC<QuanLyChoThueScreenProps> = ({ onNavigate })
       onPress={() => handleMenuPress(item.screen)}
     >
       <View style={styles.menuItemContent}>
-        <View style={styles.iconContainer}>
-          <Text style={styles.icon}>{item.icon}</Text>
+        <View style={styles.menuItemIcon}>
+          <Text style={styles.menuItemIconText}>{item.icon}</Text>
         </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.menuTitle}>{item.title}</Text>
-          <Text style={styles.menuDescription}>{item.description}</Text>
+        <View style={styles.menuItemText}>
+          <Text style={styles.menuItemTitle}>{item.title}</Text>
+          <Text style={styles.menuItemDescription}>{item.description}</Text>
         </View>
-        <View style={styles.arrowContainer}>
-          <Text style={styles.arrow}>›</Text>
+        <View style={styles.menuItemArrow}>
+          <Text style={styles.menuItemArrowText}>›</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -93,9 +72,9 @@ const QuanLyChoThueScreen: React.FC<QuanLyChoThueScreenProps> = ({ onNavigate })
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Quản lý cho thuê đồ</Text>
+            <Text style={styles.headerTitle}>Quản lý mượn vật dụng</Text>
             <Text style={styles.headerSubtitle}>
-              Quản lý vật dụng và phiếu mượn trả
+              Quản lý việc mượn và trả vật dụng
             </Text>
           </View>
           <TouchableOpacity 
@@ -122,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#2ecc71",
     paddingHorizontal: 20,
     paddingVertical: 24,
     borderBottomLeftRadius: 24,
@@ -180,40 +159,40 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#ecf0f1",
+  menuItemIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#f8f9fa",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
-  icon: {
-    fontSize: 24,
+  menuItemIconText: {
+    fontSize: 28,
   },
-  textContainer: {
+  menuItemText: {
     flex: 1,
   },
-  menuTitle: {
+  menuItemTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "bold",
     color: "#2c3e50",
     marginBottom: 4,
   },
-  menuDescription: {
+  menuItemDescription: {
     fontSize: 14,
     color: "#7f8c8d",
     lineHeight: 20,
   },
-  arrowContainer: {
+  menuItemArrow: {
     marginLeft: 12,
   },
-  arrow: {
+  menuItemArrowText: {
     fontSize: 24,
     color: "#bdc3c7",
-    fontWeight: "300",
+    fontWeight: "bold",
   },
 });
 
-export default QuanLyChoThueScreen;
+export default QuanLyMuonVatDungScreen;

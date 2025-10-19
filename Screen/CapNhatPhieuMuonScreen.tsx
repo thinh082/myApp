@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
   FlatList,
   Dimensions,
@@ -14,10 +13,19 @@ import {
   getDanhSachPhieuMuonTra, 
   PhieuMuon
 } from "../service/phieumuon";
+import { getIdTaiKhoan } from "../service/storage";
 import ChiTietCapNhatScreen from "./ChiTietCapNhatScreen";
 
 
-const CapNhatPhieuMuonScreen: React.FC = () => {
+type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung' | 
+             'themvatdung' | 'capnhatvatdung' | 'xoavatdung' | 'danhsachvatdungchusohuu' | 
+             'capnhatphieumuon' | 'xoaphieumuon';
+
+interface CapNhatPhieuMuonScreenProps {
+  onNavigate: (screen: Screen, vatDungId?: number) => void;
+}
+
+const CapNhatPhieuMuonScreen: React.FC<CapNhatPhieuMuonScreenProps> = ({ onNavigate }) => {
   const [loadingList, setLoadingList] = useState(true);
   const [phieuMuonList, setPhieuMuonList] = useState<PhieuMuon[]>([]);
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<PhieuMuon | null>(null);
@@ -34,11 +42,28 @@ const CapNhatPhieuMuonScreen: React.FC = () => {
   // Determine if screen is wide enough for side-by-side layout
   const isWideScreen = screenData.width > 768;
 
-  const chuSoHuuId = 1; // Tạm thời hardcode, sau này lấy từ user đăng nhập
+  const [chuSoHuuId, setChuSoHuuId] = useState<number>(1);
 
   useEffect(() => {
-    fetchPhieuMuonList();
+    loadUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (chuSoHuuId !== 1) {
+      fetchPhieuMuonList();
+    }
+  }, [chuSoHuuId]);
+
+  const loadUserInfo = async () => {
+    try {
+      const taiKhoanId = await getIdTaiKhoan();
+      if (taiKhoanId) {
+        setChuSoHuuId(taiKhoanId);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+    }
+  };
 
   const fetchPhieuMuonList = async () => {
     try {
@@ -126,12 +151,12 @@ const CapNhatPhieuMuonScreen: React.FC = () => {
 
   if (loadingList) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9b59b6" />
           <Text style={styles.loadingText}>Đang tải danh sách phiếu mượn...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -141,12 +166,22 @@ const CapNhatPhieuMuonScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cập nhật phiếu mượn</Text>
-        <Text style={styles.headerSubtitle}>
-          Quản lý và cập nhật trạng thái phiếu mượn trả
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Cập nhật phiếu mượn</Text>
+            <Text style={styles.headerSubtitle}>
+              Quản lý và cập nhật trạng thái phiếu mượn trả
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => onNavigate('quanlychothue')}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -169,7 +204,7 @@ const CapNhatPhieuMuonScreen: React.FC = () => {
           />
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -185,6 +220,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -194,6 +237,19 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: "#ecf0f1",
+  },
+  backButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,
