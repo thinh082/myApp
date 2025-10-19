@@ -6,27 +6,45 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DangNhap } from "../service/auth";
-import { setIdTaiKhoan } from "../service/storage";
+import { DangNhap, DangNhapRequest } from "../service/auth";
+import { StorageService } from "../service/storage";
 
 const DangNhapScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [matKhau, setMatKhau] = useState("");
+  const [chuSoHuu, setChuSoHuu] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !matKhau) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin");
+      return;
+    }
+
     try {
-      const res = await DangNhap({ email, matKhau });
+      setLoading(true);
+      const request: DangNhapRequest = {
+        email,
+        matKhau,
+        chuSoHuu,
+      };
+
+      const res = await DangNhap(request);
 
       if (res.taiKhoanId) {
-        await setIdTaiKhoan(res.taiKhoanId);
+        // Lưu thông tin vào AsyncStorage
+        await StorageService.saveLoginInfo(res.taiKhoanId, res.chuSoHuu || false);
         Alert.alert("Thành công", res.message);
       } else {
         Alert.alert("Thất bại", res.message || "Sai email hoặc mật khẩu");
       }
     } catch (err: any) {
       Alert.alert("Lỗi", err.message || "Không thể đăng nhập");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,8 +79,41 @@ const DangNhapScreen: React.FC = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Đăng Nhập</Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Loại tài khoản</Text>
+            <View style={styles.radioContainer}>
+              <TouchableOpacity
+                style={[styles.radioButton, chuSoHuu && styles.radioButtonSelected]}
+                onPress={() => setChuSoHuu(true)}
+              >
+                <Text style={[styles.radioText, chuSoHuu && styles.radioTextSelected]}>
+                  Chủ sở hữu
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.radioButton, !chuSoHuu && styles.radioButtonSelected]}
+                onPress={() => setChuSoHuu(false)}
+              >
+                <Text style={[styles.radioText, !chuSoHuu && styles.radioTextSelected]}>
+                  Người mượn
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#ffffff" />
+                <Text style={styles.loginButtonText}>Đang đăng nhập...</Text>
+              </View>
+            ) : (
+              <Text style={styles.loginButtonText}>Đăng Nhập</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -123,7 +174,43 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
+  loginButtonDisabled: {
+    backgroundColor: "#bdc3c7",
+  },
   loginButtonText: { color: "#ffffff", fontSize: 18, fontWeight: "bold" },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  radioContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  radioButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e1e8ed",
+    backgroundColor: "#f8f9fa",
+    marginHorizontal: 4,
+    alignItems: "center",
+  },
+  radioButtonSelected: {
+    backgroundColor: "#3498db",
+    borderColor: "#3498db",
+  },
+  radioText: {
+    fontSize: 14,
+    color: "#7f8c8d",
+    fontWeight: "500",
+  },
+  radioTextSelected: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
   registerLink: { alignItems: "center" },
   registerLinkText: { fontSize: 16, color: "#3498db", fontWeight: "600" },
 });

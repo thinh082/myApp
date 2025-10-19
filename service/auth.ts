@@ -11,6 +11,7 @@ export type DangNhapRequest = {
 export type DangNhapResponse = {
   message: string;
   taiKhoanId?: number; // chỉ có khi đăng nhập thành công
+  chuSoHuu?: boolean; // true nếu là chủ sở hữu, false nếu là người mượn
 };
 
 export type DangKyRequest = {
