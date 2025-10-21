@@ -20,6 +20,7 @@ export type DangKyRequest = {
   soDienThoai: string;
   diaChi: string;
   hoTen: string;
+  vaiTro: number; // 1: Chủ sở hữu, 2: Người mượn
 };
 
 export type DangKyResponse = {

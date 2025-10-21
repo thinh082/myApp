@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 
 import { DangKy } from "../service/auth";
 
@@ -24,6 +25,7 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
   const [xacNhanMatKhau, setXacNhanMatKhau] = useState("");
   const [hoTen, setHoTen] = useState("");
   const [diaChi, setDiaChi] = useState("");
+  const [vaiTro, setVaiTro] = useState<number>(1); // Mặc định là Chủ sở hữu
 
   const handleRegister = async () => {
     if (matKhau !== xacNhanMatKhau) {
@@ -32,7 +34,7 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
     }
 
     try {
-      const res = await DangKy({ email, soDienThoai, matKhau, hoTen, diaChi });
+      const res = await DangKy({ email, soDienThoai, matKhau, hoTen, diaChi, vaiTro });
       if (res.success) {
         Alert.alert(
           "Thành công", 
@@ -103,6 +105,20 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
               value={diaChi}
               onChangeText={setDiaChi}
             />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Vai trò</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={vaiTro}
+                onValueChange={(itemValue) => setVaiTro(itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label="Chủ sở hữu" value={1} />
+                <Picker.Item label="Người mượn" value={2} />
+              </Picker>
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
@@ -177,6 +193,17 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: "#f8f9fa",
+    color: "#2c3e50",
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#e1e8ed",
+    borderRadius: 12,
+    backgroundColor: "#f8f9fa",
+    overflow: "hidden",
+  },
+  picker: {
+    height: 50,
     color: "#2c3e50",
   },
   registerButton: {
