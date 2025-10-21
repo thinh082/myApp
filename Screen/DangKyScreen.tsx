@@ -25,11 +25,11 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
   const [xacNhanMatKhau, setXacNhanMatKhau] = useState("");
   const [hoTen, setHoTen] = useState("");
   const [diaChi, setDiaChi] = useState("");
-  const [vaiTro, setVaiTro] = useState<number>(1); // Mặc định là Chủ sở hữu
-  const [showVaiTroModal, setShowVaiTroModal] = useState(false);
+  const [LoaiTaiKhoanId, setLoaiTaiKhoanId] = useState<number>(1); // Mặc định là Chủ sở hữu
+  const [showLoaiTaiKhoanModal, setShowLoaiTaiKhoanModal] = useState(false);
 
-  const getVaiTroText = (vaiTro: number) => {
-    return vaiTro === 1 ? "Chủ sở hữu" : "Người mượn";
+  const getLoaiTaiKhoanText = (LoaiTaiKhoanId: number) => {
+    return LoaiTaiKhoanId === 1 ? "Chủ sở hữu" : "Người mượn";
   };
 
   const handleRegister = async () => {
@@ -39,7 +39,7 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
     }
 
     try {
-      const res = await DangKy({ email, soDienThoai, matKhau, hoTen, diaChi, vaiTro });
+      const res = await DangKy({ email, soDienThoai, matKhau, hoTen, diaChi, LoaiTaiKhoanId });
       if (res.success) {
         Alert.alert(
           "Thành công", 
@@ -116,9 +116,9 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
             <Text style={styles.label}>Vai trò</Text>
             <TouchableOpacity
               style={styles.dropdownButton}
-              onPress={() => setShowVaiTroModal(true)}
+              onPress={() => setShowLoaiTaiKhoanModal(true)}
             >
-              <Text style={styles.dropdownText}>{getVaiTroText(vaiTro)}</Text>
+              <Text style={styles.dropdownText}>{getLoaiTaiKhoanText(LoaiTaiKhoanId)}</Text>
               <Text style={styles.dropdownArrow}>▼</Text>
             </TouchableOpacity>
           </View>
@@ -161,41 +161,41 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
         </View>
       </ScrollView>
 
-      {/* Modal chọn vai trò */}
+      {/* Modal chọn loại tài khoản */}
       <Modal
-        visible={showVaiTroModal}
+        visible={showLoaiTaiKhoanModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowVaiTroModal(false)}
+        onRequestClose={() => setShowLoaiTaiKhoanModal(false)}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setShowVaiTroModal(false)}
+          onPress={() => setShowLoaiTaiKhoanModal(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Chọn vai trò</Text>
+            <Text style={styles.modalTitle}>Chọn loại tài khoản</Text>
             
             <TouchableOpacity
-              style={[styles.modalOption, vaiTro === 1 && styles.modalOptionSelected]}
+              style={[styles.modalOption, LoaiTaiKhoanId === 1 && styles.modalOptionSelected]}
               onPress={() => {
-                setVaiTro(1);
-                setShowVaiTroModal(false);
+                setLoaiTaiKhoanId(1);
+                setShowLoaiTaiKhoanModal(false);
               }}
             >
-              <Text style={[styles.modalOptionText, vaiTro === 1 && styles.modalOptionTextSelected]}>
+              <Text style={[styles.modalOptionText, LoaiTaiKhoanId === 1 && styles.modalOptionTextSelected]}>
                 Chủ sở hữu
               </Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.modalOption, vaiTro === 2 && styles.modalOptionSelected]}
+              style={[styles.modalOption, LoaiTaiKhoanId === 2 && styles.modalOptionSelected]}
               onPress={() => {
-                setVaiTro(2);
-                setShowVaiTroModal(false);
+                setLoaiTaiKhoanId(2);
+                setShowLoaiTaiKhoanModal(false);
               }}
             >
-              <Text style={[styles.modalOptionText, vaiTro === 2 && styles.modalOptionTextSelected]}>
+              <Text style={[styles.modalOptionText, LoaiTaiKhoanId === 2 && styles.modalOptionTextSelected]}>
                 Người mượn
               </Text>
             </TouchableOpacity>
