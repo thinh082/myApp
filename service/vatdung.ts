@@ -18,6 +18,7 @@ export type VatDung = {
 };
 
 export type ThemVatDung = {
+  id?: number; // Optional vì backend có Id field
   chuSoHuuId: number;
   tenVatDung: string;
   moTa?: string;
@@ -56,11 +57,33 @@ export async function getDanhSachVatDungTheoChuSoHuu(
 
 // Thêm vật dụng mới
 export async function themVatDung(vatDung: ThemVatDung): Promise<ApiResponse> {
-  const response = await api.post<ApiResponse>(
-    "/api/VatDung/ThemVatDung",
-    vatDung
-  );
-  return response.data;
+  console.log('Gửi request thêm vật dụng:', {
+    url: "/api/VatDung/ThemVatDung",
+    data: vatDung
+  });
+  
+  try {
+    const response = await api.post<ApiResponse>(
+      "/api/VatDung/ThemVatDung",
+      vatDung,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+    console.log('Response từ API thêm vật dụng:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Lỗi API themVatDung:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Response headers:', error.response.headers);
+    }
+    throw error;
+  }
 }
 
 // Cập nhật vật dụng
@@ -74,7 +97,7 @@ export async function capNhatVatDung(vatDung: VatDung): Promise<ApiResponse> {
 
 // Xóa vật dụng
 export async function xoaVatDung(id: number): Promise<ApiResponse> {
-  const response = await api.post<ApiResponse>("/api/VatDung/XoaVatDung", id);
+  const response = await api.post<ApiResponse>("/api/VatDung/XoaVatDung?id="+ id);
   return response.data;
 }
 

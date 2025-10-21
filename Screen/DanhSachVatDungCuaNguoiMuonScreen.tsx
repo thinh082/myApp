@@ -52,6 +52,7 @@ const DanhSachVatDungCuaNguoiMuonScreen: React.FC<DanhSachVatDungCuaNguoiMuonScr
     try {
       setLoading(true);
       const data = await getDanhSachPhieuMuonTraTheoNguoiMuon(nguoiMuonId);
+      console.log(data)
       setPhieuMuonList(data);
     } catch (error: any) {
       Alert.alert("Lỗi", "Không thể tải danh sách phiếu mượn: " + error.message);

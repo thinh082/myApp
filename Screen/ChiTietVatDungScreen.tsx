@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { getChiTietVatDung, VatDung } from "../service/vatdung";
 import { themPhieuMuonTra, ThemPhieuMuon } from "../service/phieumuon";
+import { getIdTaiKhoan } from "../service/storage";
 
 type Screen = 'dangnhap' | 'dangky' | 'quanlychothue' | 'danhsachvatdung' | 'chitietvatdung';
 
@@ -25,6 +26,8 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [borrowing, setBorrowing] = useState(false);
+  const [nguoiMuonId, setNguoiMuonId] = useState<number | null>(null);
+  const [soLuongMuon, setSoLuongMuon] = useState<number>(1);
 
   const fetchChiTietVatDung = async () => {
     try {
@@ -40,6 +43,10 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
 
   useEffect(() => {
     fetchChiTietVatDung();
+    (async () => {
+      const id = await getIdTaiKhoan();
+      if (id) setNguoiMuonId(id);
+    })();
   }, []);
 
   const onRefresh = () => {
@@ -59,19 +66,61 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
       return;
     }
 
+    // Validate số lượng mượn
+    const soLuongCon = vatDung.soLuongCon ?? 0;
+    if (soLuongMuon <= 0) {
+      Alert.alert("Lỗi", "Số lượng mượn phải lớn hơn 0");
+      return;
+    }
+    if (soLuongMuon > soLuongCon) {
+      Alert.alert("Lỗi", "Số lượng mượn vượt quá số lượng còn lại");
+      return;
+    }
+    if (!nguoiMuonId) {
+      Alert.alert("Lỗi", "Không xác định được người mượn. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    // Kiểm tra dữ liệu trước khi gửi
+    console.log('Kiểm tra dữ liệu:');
+    console.log('- vatDung.id:', vatDung.id);
+    console.log('- nguoiMuonId:', nguoiMuonId);
+    console.log('- vatDung.chuSoHuuId:', vatDung.chuSoHuuId);
+    console.log('- soLuongMuon:', soLuongMuon);
+    console.log('- vatDung.tenVatDung:', vatDung.tenVatDung);
+
+    // Validation bổ sung
+    if (!vatDung.id || vatDung.id <= 0) {
+      Alert.alert("Lỗi", "ID vật dụng không hợp lệ");
+      return;
+    }
+    if (!vatDung.chuSoHuuId || vatDung.chuSoHuuId <= 0) {
+      Alert.alert("Lỗi", "ID chủ sở hữu không hợp lệ");
+      return;
+    }
+    if (!vatDung.tenVatDung || vatDung.tenVatDung.trim() === '') {
+      Alert.alert("Lỗi", "Tên vật dụng không hợp lệ");
+      return;
+    }
+
     try {
       setBorrowing(true);
 
       // Tạo dữ liệu phiếu mượn
+      const today = new Date();
+      const returnDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      
       const phieuMuonData: ThemPhieuMuon = {
-        vatDungId: vatDung.id,
-        nguoiMuonId: 1, // Tạm thời hardcode, sau này sẽ lấy từ user đăng nhập
-        chuSoHuuId: vatDung.chuSoHuuId,
-        soLuong: 1, // Mặc định mượn 1 cái
-        ngayMuon: new Date().toISOString().split('T')[0] + 'T00:00:00', // Ngày hiện tại
-        ngayTraDuKien: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T00:00:00', // 7 ngày sau
+        vatDungId: Number(vatDung.id), // Đảm bảo là number
+        nguoiMuonId: Number(nguoiMuonId), // Đảm bảo là number
+        chuSoHuuId: Number(vatDung.chuSoHuuId), // Đảm bảo là number
+        soLuong: Number(soLuongMuon), // Đảm bảo là number
+        ngayMuon: today.toISOString().split('T')[0] + 'T00:00:00', // Format: YYYY-MM-DDTHH:mm:ss
+        ngayTraDuKien: returnDate.toISOString().split('T')[0] + 'T00:00:00', // Format: YYYY-MM-DDTHH:mm:ss
         ghiChu: `Mượn ${vatDung.tenVatDung}`
       };
+
+      console.log('Dữ liệu gửi lên API:', JSON.stringify(phieuMuonData, null, 2));
 
       const result = await themPhieuMuonTra(phieuMuonData);
       
@@ -85,6 +134,7 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
               onPress: () => {
                 // Làm mới dữ liệu để cập nhật số lượng
                 fetchChiTietVatDung();
+                setSoLuongMuon(1);
               }
             }
           ]
@@ -93,7 +143,31 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
         Alert.alert("Lỗi", result.message || "Không thể tạo phiếu mượn");
       }
     } catch (error: any) {
-      Alert.alert("Lỗi", "Không thể tạo phiếu mượn: " + error.message);
+      console.error('Lỗi khi tạo phiếu mượn:', error);
+      
+      let errorMessage = "Không thể tạo phiếu mượn";
+      
+      if (error.response) {
+        // Lỗi từ server
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        
+        if (error.response.status === 400) {
+          errorMessage = "Dữ liệu không hợp lệ: " + (error.response.data?.message || "Vui lòng kiểm tra lại thông tin");
+        } else if (error.response.status === 500) {
+          errorMessage = "Lỗi server: " + (error.response.data?.message || "Vui lòng thử lại sau");
+        } else {
+          errorMessage = `Lỗi ${error.response.status}: ${error.response.data?.message || error.message}`;
+        }
+      } else if (error.request) {
+        // Lỗi network
+        errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
+      } else {
+        // Lỗi khác
+        errorMessage = error.message || "Có lỗi xảy ra";
+      }
+      
+      Alert.alert("Lỗi", errorMessage);
     } finally {
       setBorrowing(false);
     }
@@ -165,6 +239,7 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
           <Text style={styles.conditionText}>{vatDung.tinhTrang}</Text>
         </View>
       )}
+
 
       <View style={styles.metadataSection}>
         {/* <Text style={styles.sectionTitle}>Thông tin khác</Text>

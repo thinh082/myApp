@@ -95,11 +95,33 @@ export async function getChiTietPhieuMuon(id: number): Promise<PhieuMuon> {
 export async function themPhieuMuonTra(
   body: ThemPhieuMuon
 ): Promise<ApiResponse> {
-  const response = await api.post<ApiResponse>(
-    "/api/PhieuMuonTra/ThemPhieuMuonTra",
-    body
-  );
-  return response.data;
+  console.log('Gửi request đến API:', {
+    url: "/api/PhieuMuonTra/ThemPhieuMuonTra",
+    data: body
+  });
+  
+  try {
+    const response = await api.post<ApiResponse>(
+      "/api/PhieuMuonTra/ThemPhieuMuonTra",
+      body,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+    console.log('Response từ API:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Lỗi API themPhieuMuonTra:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Response headers:', error.response.headers);
+    }
+    throw error;
+  }
 }
 
 // Cập nhật phiếu mượn trả
@@ -118,8 +140,7 @@ export async function xoaPhieuMuonTra(
   id: number
 ): Promise<ApiResponse> {
   const response = await api.post<ApiResponse>(
-    "/api/PhieuMuonTra/XoaPhieuMuonTra",
-    id
+    "/api/PhieuMuonTra/XoaPhieuMuonTra?id="+id
   );
   return response.data;
 }
