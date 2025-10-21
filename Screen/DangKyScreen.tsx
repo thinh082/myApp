@@ -25,11 +25,11 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
   const [xacNhanMatKhau, setXacNhanMatKhau] = useState("");
   const [hoTen, setHoTen] = useState("");
   const [diaChi, setDiaChi] = useState("");
-  const [LoaiTaiKhoanId, setLoaiTaiKhoanId] = useState<number>(1); // Mặc định là Chủ sở hữu
+  const [LoaiTaiKhoanId, setLoaiTaiKhoanId] = useState<number>(2); // Mặc định là Chủ sở hữu
   const [showLoaiTaiKhoanModal, setShowLoaiTaiKhoanModal] = useState(false);
 
   const getLoaiTaiKhoanText = (LoaiTaiKhoanId: number) => {
-    return LoaiTaiKhoanId === 1 ? "Chủ sở hữu" : "Người mượn";
+    return LoaiTaiKhoanId === 2 ? "Chủ sở hữu" : "Người mượn";
   };
 
   const handleRegister = async () => {
@@ -179,7 +179,7 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
             <TouchableOpacity
               style={[styles.modalOption, LoaiTaiKhoanId === 2 && styles.modalOptionSelected]}
               onPress={() => {
-                setLoaiTaiKhoanId(1);
+                setLoaiTaiKhoanId(2);
                 setShowLoaiTaiKhoanModal(false);
               }}
             >
@@ -191,7 +191,7 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
             <TouchableOpacity
               style={[styles.modalOption, LoaiTaiKhoanId === 3 && styles.modalOptionSelected]}
               onPress={() => {
-                setLoaiTaiKhoanId(2);
+                setLoaiTaiKhoanId(3);
                 setShowLoaiTaiKhoanModal(false);
               }}
             >
