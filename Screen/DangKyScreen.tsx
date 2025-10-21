@@ -177,25 +177,25 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
             <Text style={styles.modalTitle}>Chọn loại tài khoản</Text>
             
             <TouchableOpacity
-              style={[styles.modalOption, LoaiTaiKhoanId === 1 && styles.modalOptionSelected]}
+              style={[styles.modalOption, LoaiTaiKhoanId === 2 && styles.modalOptionSelected]}
               onPress={() => {
                 setLoaiTaiKhoanId(1);
                 setShowLoaiTaiKhoanModal(false);
               }}
             >
-              <Text style={[styles.modalOptionText, LoaiTaiKhoanId === 1 && styles.modalOptionTextSelected]}>
+              <Text style={[styles.modalOptionText, LoaiTaiKhoanId === 2 && styles.modalOptionTextSelected]}>
                 Chủ sở hữu
               </Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.modalOption, LoaiTaiKhoanId === 2 && styles.modalOptionSelected]}
+              style={[styles.modalOption, LoaiTaiKhoanId === 3 && styles.modalOptionSelected]}
               onPress={() => {
                 setLoaiTaiKhoanId(2);
                 setShowLoaiTaiKhoanModal(false);
               }}
             >
-              <Text style={[styles.modalOptionText, LoaiTaiKhoanId === 2 && styles.modalOptionTextSelected]}>
+              <Text style={[styles.modalOptionText, LoaiTaiKhoanId === 3 && styles.modalOptionTextSelected]}>
                 Người mượn
               </Text>
             </TouchableOpacity>
