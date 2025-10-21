@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Modal,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 
 import { DangKy } from "../service/auth";
 
@@ -26,6 +26,11 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
   const [hoTen, setHoTen] = useState("");
   const [diaChi, setDiaChi] = useState("");
   const [vaiTro, setVaiTro] = useState<number>(1); // Mặc định là Chủ sở hữu
+  const [showVaiTroModal, setShowVaiTroModal] = useState(false);
+
+  const getVaiTroText = (vaiTro: number) => {
+    return vaiTro === 1 ? "Chủ sở hữu" : "Người mượn";
+  };
 
   const handleRegister = async () => {
     if (matKhau !== xacNhanMatKhau) {
@@ -109,16 +114,13 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Vai trò</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={vaiTro}
-                onValueChange={(itemValue) => setVaiTro(itemValue)}
-                style={styles.picker}
-              >
-                <Picker.Item label="Chủ sở hữu" value={1} />
-                <Picker.Item label="Người mượn" value={2} />
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setShowVaiTroModal(true)}
+            >
+              <Text style={styles.dropdownText}>{getVaiTroText(vaiTro)}</Text>
+              <Text style={styles.dropdownArrow}>▼</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.inputGroup}>
@@ -158,6 +160,48 @@ const DangKyScreen: React.FC<DangKyScreenProps> = ({ onNavigate }) => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Modal chọn vai trò */}
+      <Modal
+        visible={showVaiTroModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowVaiTroModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowVaiTroModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Chọn vai trò</Text>
+            
+            <TouchableOpacity
+              style={[styles.modalOption, vaiTro === 1 && styles.modalOptionSelected]}
+              onPress={() => {
+                setVaiTro(1);
+                setShowVaiTroModal(false);
+              }}
+            >
+              <Text style={[styles.modalOptionText, vaiTro === 1 && styles.modalOptionTextSelected]}>
+                Chủ sở hữu
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.modalOption, vaiTro === 2 && styles.modalOptionSelected]}
+              onPress={() => {
+                setVaiTro(2);
+                setShowVaiTroModal(false);
+              }}
+            >
+              <Text style={[styles.modalOptionText, vaiTro === 2 && styles.modalOptionTextSelected]}>
+                Người mượn
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -195,16 +239,63 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
     color: "#2c3e50",
   },
-  pickerContainer: {
+  dropdownButton: {
     borderWidth: 1,
     borderColor: "#e1e8ed",
     borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     backgroundColor: "#f8f9fa",
-    overflow: "hidden",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  picker: {
-    height: 50,
+  dropdownText: {
+    fontSize: 16,
     color: "#2c3e50",
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: "#7f8c8d",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+    width: "80%",
+    maxWidth: 300,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  modalOption: {
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 10,
+    backgroundColor: "#f8f9fa",
+  },
+  modalOptionSelected: {
+    backgroundColor: "#3498db",
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: "#2c3e50",
+    textAlign: "center",
+  },
+  modalOptionTextSelected: {
+    color: "#ffffff",
+    fontWeight: "600",
   },
   registerButton: {
     backgroundColor: "#3498db",
