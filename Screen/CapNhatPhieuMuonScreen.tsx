@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { 
   getDanhSachPhieuMuonTra, 
+  getDanhSachPhieuMuonTraTheoChuSoHuu, 
+  getDanhSachPhieuMuonTraTheoNguoiMuon,
   PhieuMuon
 } from "../service/phieumuon";
 import { getIdTaiKhoan } from "../service/storage";
@@ -68,7 +70,7 @@ const CapNhatPhieuMuonScreen: React.FC<CapNhatPhieuMuonScreenProps> = ({ onNavig
   const fetchPhieuMuonList = async () => {
     try {
       setLoadingList(true);
-      const data = await getDanhSachPhieuMuonTra();
+      const data = await getDanhSachPhieuMuonTraTheoChuSoHuu(chuSoHuuId);
       // Debug: Log dữ liệu để kiểm tra cấu trúc
       console.log("API Response:", JSON.stringify(data, null, 2));
       

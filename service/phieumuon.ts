@@ -79,6 +79,18 @@ export async function getDanhSachPhieuMuonTraTheoNguoiMuon(nguoiMuonId: number):
   return response.data;
 }
 
+// Lấy danh sách phiếu mượn trả theo chủ sở hữu
+export async function getDanhSachPhieuMuonTraTheoChuSoHuu(idTaiKhoan: number): Promise<PhieuMuon[]> {
+  if (idTaiKhoan === 0) {
+    throw new Error("ID tài khoản không được để trống");
+  }
+  
+  const response = await api.post<PhieuMuon[]>(
+    "/api/PhieuMuonTra/DanhSachPhieuMuonTraTheoChuSoHuu?idTaiKhoan=" + idTaiKhoan
+  );
+  return response.data;
+}
+
 // Lấy danh sách phiếu mượn trả (format cũ - backward compatibility)
 export async function getDanhSachPhieuMuonTraLegacy(): Promise<PhieuMuonLegacy[]> {
   const response = await api.get<PhieuMuonLegacy[]>("/api/PhieuMuonTra/DanhSachPhieuMuonTra");
