@@ -11,7 +11,8 @@ import {
 import { 
   xoaPhieuMuonTra, 
   getDanhSachPhieuMuonTra, 
-  PhieuMuon 
+  PhieuMuon, 
+  getDanhSachPhieuMuonTraTheoChuSoHuu
 } from "../service/phieumuon";
 import { getIdTaiKhoan } from "../service/storage";
 
@@ -53,7 +54,7 @@ const XoaPhieuMuonScreen: React.FC<XoaPhieuMuonScreenProps> = ({ onNavigate }) =
   const fetchPhieuMuonList = async () => {
     try {
       setLoadingList(true);
-      const data = await getDanhSachPhieuMuonTra();
+      const data = await getDanhSachPhieuMuonTraTheoChuSoHuu(chuSoHuuId);
       // API mới không có chuSoHuuId, hiển thị tất cả phiếu mượn
       // TODO: Cần thêm logic lọc theo chủ sở hữu từ backend
       setPhieuMuonList(data);
