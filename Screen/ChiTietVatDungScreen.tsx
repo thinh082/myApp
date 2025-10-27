@@ -193,6 +193,48 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
     </View>
   );
 
+  const renderQuantitySelector = () => (
+    <View style={styles.quantitySelectorSection}>
+      <Text style={styles.sectionTitle}>Số lượng muốn mượn</Text>
+      <View style={styles.quantitySelectorContainer}>
+        <TouchableOpacity 
+          style={[
+            styles.quantityButton,
+            soLuongMuon <= 1 && styles.disabledQuantityButton
+          ]}
+          onPress={() => setSoLuongMuon(Math.max(1, soLuongMuon - 1))}
+          disabled={soLuongMuon <= 1}
+        >
+          <Text style={[
+            styles.quantityButtonText,
+            soLuongMuon <= 1 && styles.disabledQuantityButtonText
+          ]}>-</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.quantityDisplay}>
+          <Text style={styles.quantityDisplayText}>{soLuongMuon}</Text>
+        </View>
+        
+        <TouchableOpacity 
+          style={[
+            styles.quantityButton,
+            soLuongMuon >= (vatDung?.soLuongCon || 0) && styles.disabledQuantityButton
+          ]}
+          onPress={() => setSoLuongMuon(Math.min(vatDung?.soLuongCon || 0, soLuongMuon + 1))}
+          disabled={soLuongMuon >= (vatDung?.soLuongCon || 0)}
+        >
+          <Text style={[
+            styles.quantityButtonText,
+            soLuongMuon >= (vatDung?.soLuongCon || 0) && styles.disabledQuantityButtonText
+          ]}>+</Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.quantityHint}>
+        Tối đa: {vatDung?.soLuongCon || 0} sản phẩm
+      </Text>
+    </View>
+  );
+
   const renderInfoSection = () => (
     <View style={styles.infoSection}>
       <View style={styles.titleContainer}>
@@ -232,6 +274,8 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
           </View>
         </View>
       </View>
+
+      {vatDung?.coTheMuon && (vatDung?.soLuongCon || 0) > 0 && renderQuantitySelector()}
 
       {vatDung?.tinhTrang && (
         <View style={styles.conditionSection}>
@@ -582,6 +626,70 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Styles cho component chọn số lượng
+  quantitySelectorSection: {
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  quantitySelectorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+  },
+  quantityButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#3498db",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  disabledQuantityButton: {
+    backgroundColor: "#bdc3c7",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  quantityButtonText: {
+    color: "#ffffff",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  disabledQuantityButtonText: {
+    color: "#95a5a6",
+  },
+  quantityDisplay: {
+    marginHorizontal: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#3498db",
+    minWidth: 80,
+    alignItems: "center",
+  },
+  quantityDisplayText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#2c3e50",
+  },
+  quantityHint: {
+    fontSize: 14,
+    color: "#7f8c8d",
+    textAlign: "center",
+    marginTop: 8,
+    fontStyle: "italic",
   },
 });
 
