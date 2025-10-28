@@ -119,10 +119,6 @@ const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigat
 
             <View style={styles.itemFooter}>
               <View style={styles.quantityContainer}>
-                <Text style={styles.quantityLabel}>Tổng:</Text>
-                <Text style={styles.quantityValue}>{item.soLuongTong || 0}</Text>
-              </View>
-              <View style={styles.quantityContainer}>
                 <Text style={styles.quantityLabel}>Còn lại:</Text>
                 <Text style={[
                   styles.quantityValue,
@@ -174,9 +170,6 @@ const DanhSachVatDungScreen: React.FC<DanhSachVatDungScreenProps> = ({ onNavigat
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Danh Sách Vật Dụng</Text>
-            <Text style={styles.headerSubtitle}>
-              {searchText ? `Tìm thấy: ${filteredList.length} vật dụng` : `Tổng cộng: ${vatDungList.length} vật dụng`}
-            </Text>
           </View>
           <View style={styles.headerButtons}>
             <TouchableOpacity 

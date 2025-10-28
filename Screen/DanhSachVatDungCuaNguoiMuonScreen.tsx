@@ -215,9 +215,6 @@ const DanhSachVatDungCuaNguoiMuonScreen: React.FC<DanhSachVatDungCuaNguoiMuonScr
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Các vật dụng đã mượn</Text>
-            <Text style={styles.headerSubtitle}>
-              Tổng cộng: {phieuMuonList.length} phiếu mượn
-            </Text>
           </View>
           <TouchableOpacity 
             style={styles.backButton}
