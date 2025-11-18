@@ -9,6 +9,7 @@ import {
   Image,
   TouchableOpacity,
   RefreshControl,
+  TextInput,
 } from "react-native";
 import { getChiTietVatDung, VatDung } from "../service/vatdung";
 import { themPhieuMuonTra, ThemPhieuMuon } from "../service/phieumuon";
@@ -28,6 +29,14 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
   const [borrowing, setBorrowing] = useState(false);
   const [nguoiMuonId, setNguoiMuonId] = useState<number | null>(null);
   const [soLuongMuon, setSoLuongMuon] = useState<number>(1);
+  const [soLuongMuonInput, setSoLuongMuonInput] = useState<string>("1");
+
+  const clampQuantity = (value: number) => {
+    const max = Math.max(1, vatDung?.soLuongCon ?? 1);
+    const clamped = Math.min(Math.max(1, value), max);
+    setSoLuongMuon(clamped);
+    setSoLuongMuonInput(String(clamped));
+  };
 
   const fetchChiTietVatDung = async () => {
     try {
@@ -134,7 +143,7 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
               onPress: () => {
                 // Làm mới dữ liệu để cập nhật số lượng
                 fetchChiTietVatDung();
-                setSoLuongMuon(1);
+                clampQuantity(1);
               }
             }
           ]
@@ -193,6 +202,32 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
     </View>
   );
 
+  useEffect(() => {
+    if (!vatDung) return;
+    clampQuantity(soLuongMuon || 1);
+  }, [vatDung?.soLuongCon]);
+
+  const handleQuantityInputChange = (text: string) => {
+    const numericText = text.replace(/[^0-9]/g, "");
+    setSoLuongMuonInput(numericText);
+
+    if (numericText === "") {
+      setSoLuongMuon(0);
+      return;
+    }
+
+    const value = parseInt(numericText, 10);
+    if (Number.isNaN(value)) return;
+
+    const max = Math.max(1, vatDung?.soLuongCon ?? 1);
+    const clamped = Math.min(Math.max(1, value), max);
+    setSoLuongMuon(clamped);
+
+    if (clamped !== value) {
+      setSoLuongMuonInput(String(clamped));
+    }
+  };
+
   const renderQuantitySelector = () => (
     <View style={styles.quantitySelectorSection}>
       <Text style={styles.sectionTitle}>Số lượng muốn mượn</Text>
@@ -202,7 +237,7 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
             styles.quantityButton,
             soLuongMuon <= 1 && styles.disabledQuantityButton
           ]}
-          onPress={() => setSoLuongMuon(Math.max(1, soLuongMuon - 1))}
+          onPress={() => clampQuantity(soLuongMuon - 1)}
           disabled={soLuongMuon <= 1}
         >
           <Text style={[
@@ -211,16 +246,21 @@ const ChiTietVatDungScreen: React.FC<ChiTietVatDungScreenProps> = ({ onNavigate,
           ]}>-</Text>
         </TouchableOpacity>
         
-        <View style={styles.quantityDisplay}>
-          <Text style={styles.quantityDisplayText}>{soLuongMuon}</Text>
-        </View>
+        <TextInput
+          style={styles.quantityInput}
+          keyboardType="numeric"
+          value={soLuongMuonInput}
+          onChangeText={handleQuantityInputChange}
+          placeholder="Nhập số lượng"
+          placeholderTextColor="#95a5a6"
+        />
         
         <TouchableOpacity 
           style={[
             styles.quantityButton,
             soLuongMuon >= (vatDung?.soLuongCon || 0) && styles.disabledQuantityButton
           ]}
-          onPress={() => setSoLuongMuon(Math.min(vatDung?.soLuongCon || 0, soLuongMuon + 1))}
+          onPress={() => clampQuantity(soLuongMuon + 1)}
           disabled={soLuongMuon >= (vatDung?.soLuongCon || 0)}
         >
           <Text style={[
@@ -668,20 +708,17 @@ const styles = StyleSheet.create({
   disabledQuantityButtonText: {
     color: "#95a5a6",
   },
-  quantityDisplay: {
+  quantityInput: {
     marginHorizontal: 20,
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 10,
     backgroundColor: "#ffffff",
     borderRadius: 8,
     borderWidth: 2,
     borderColor: "#3498db",
-    minWidth: 80,
-    alignItems: "center",
-  },
-  quantityDisplayText: {
-    fontSize: 24,
-    fontWeight: "bold",
+    minWidth: 100,
+    textAlign: "center",
+    fontSize: 20,
     color: "#2c3e50",
   },
   quantityHint: {
